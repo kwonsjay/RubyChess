@@ -23,10 +23,8 @@ class SlidingPiece < Piece
     #in bounds on board
     return false unless target_pos.all? { |coord| coord.between?(0, 7) }
 
-    move_possible?(target_pos)
+    possible_moves(target_pos)
 
-    #no obstacles
-    any_obstacles?(target_pos)
 
     #doesn't leave own king in check
 
@@ -35,23 +33,28 @@ class SlidingPiece < Piece
   end
 
 
-  def move_possible?(target_pos)
+  def possible_moves(target_pos)
     #gets the difference b/t start and end pos
-    diff = [target_pos, pos].transpose.map { |el| el.reduce(&:-) }
+    # diff = [target_pos, pos].transpose.map { |el| el.reduce(&:-) }
+
     possible_moves = []
 
     #all the positions piece could move to relative to start pos
+
     self.move_dir.each do |dir|
-      (1..7).each do |factor|
-        possible_moves << dir.map { |el| el * factor }
+      factor = 1
+      relative_coord = dir.map { |el| el * factor }
+      absolute_coord = [pos, relative_coord].transpose.map { |el| el.reduce(&:+) }
+
+      until factor > 7 || board[absolute_coord].is_a?(Piece)
+        possible_moves << absolute_coord
+
+
+        factor += 1
       end
     end
 
-    possible_moves.any? { |move| move == diff }
-  end
-
-  def any_obstacles?(target_pos)
-
+    possible_moves.include?(target_pos)
   end
 
 
@@ -123,8 +126,11 @@ class Board
   def set_board
     board[0] = Rook.new(self, [0, 0], "B"), Knight.new(self, [0, 1], "B"), Bishop.new(self, [0, 2], "B"), King.new(self, [0, 3], "B"), Queen.new(self, [0, 4], "B"), Bishop.new(self, [0, 5], "B"), Knight.new(self, [0, 6], "B"), Rook.new(self, [0, 7], "B")
     board[7] = Rook.new(self, [7, 0], "W"), Knight.new(self, [7, 1], "W"), Bishop.new(self, [7, 2], "W"), King.new(self, [7, 3], "W"), Queen.new(self, [7, 4], "W"), Bishop.new(self, [7, 5], "W"), Knight.new(self, [7, 6], "W"), Rook.new(self, [7, 7], "W")
-    board[1] = Array.new(8) { (0..7).map {|col| Pawn.new(self, [0, col], "B")} }
-    board[6] = Array.new(8) { (0..7).map {|col| Pawn.new(self, [6, col], "B")} }
+    # board[1] = Array.new(8) { (0..7).map {|col| Pawn.new(self, [0, col], "B")} }
+    (0..7).each do |col|
+      board[1][col] = Pawn.new(self, [0, col], "W")
+      board[6][col] = Pawn.new(self, [0, col], "B")
+    end
   end
 
   def [](pos)
@@ -132,8 +138,7 @@ class Board
     board[row][col]
   end
 
-  def valid_move?(pos)
-  end
+
 end
 
 
