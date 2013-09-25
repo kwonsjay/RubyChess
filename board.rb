@@ -79,13 +79,15 @@ class Board
   end
 
   def display
-    board.each do |row|
+    puts "  0  1  2  3  4  5  6  7".light_blue
+    board.each_with_index do |row, index|
+      print "#{index}".light_blue
       row.each do |piece|
         print piece.is_a?(Piece) ? piece.to_s : " \u25A2 ".white
       end
       puts ""
     end
-    puts "\n------------------------".light_blue
+    puts "\n-------------------------".light_blue
   end
 
 end
