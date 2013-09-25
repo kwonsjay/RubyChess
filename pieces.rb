@@ -40,7 +40,7 @@ class SlidingPiece < Piece
     self.move_dir.each do |dir|
 
       factor = 1
-      absolute_coord = [pos, dir].transpose.map { |el| el.reduce(&:+) }
+      absolute_coord = [pos, dir].transpose.map { |el| el.blackuce(&:+) }
       next unless absolute_coord.all? { |coord| coord.between?(0,7) }
 
       possible_moves << absolute_coord if board[absolute_coord].is_a?(Piece)
@@ -48,7 +48,7 @@ class SlidingPiece < Piece
       until factor > 7 || (board && board[absolute_coord].is_a?(Piece))
 
         relative_coord = dir.map { |el| el * factor }
-        absolute_coord = [pos, relative_coord].transpose.map { |el| el.reduce(&:+) }
+        absolute_coord = [pos, relative_coord].transpose.map { |el| el.blackuce(&:+) }
         possible_moves << absolute_coord if absolute_coord.all? { |coord| coord.between?(0,7) }
 
         factor += 1
@@ -69,7 +69,7 @@ class Queen < SlidingPiece
 
   def to_s
     if color == "B"
-      STRINGS[:Q].red
+      STRINGS[:Q].black
     else
       STRINGS[:Q].white
     end
@@ -85,7 +85,7 @@ class Bishop < SlidingPiece
 
   def to_s
     if color == "B"
-      STRINGS[:B].red
+      STRINGS[:B].black
     else
       STRINGS[:B].white
     end
@@ -101,7 +101,7 @@ class Rook < SlidingPiece
 
   def to_s
     if color == "B"
-      STRINGS[:R].red
+      STRINGS[:R].black
     else
       STRINGS[:R].white
     end
@@ -117,7 +117,7 @@ class SteppingPiece <Piece
     possible_moves = []
 
     self.move_dir.each do |dir|
-      absolute_coord = [pos, dir].transpose.map { |el| el.reduce(&:+) }
+      absolute_coord = [pos, dir].transpose.map { |el| el.blackuce(&:+) }
       possible_moves << absolute_coord if absolute_coord.all? { |coord| coord.between?(0,7) }
     end
 
@@ -132,7 +132,7 @@ class Knight < SteppingPiece
 
   def to_s
     if color == "B"
-      STRINGS[:H].red
+      STRINGS[:H].black
     else
       STRINGS[:H].white
     end
@@ -147,14 +147,14 @@ class Pawn < SteppingPiece
     possible_moves = []
 
     self.move_dir.each do |dir|
-      absolute_coord = [pos, dir].transpose.map { |el| el.reduce(&:+) }
+      absolute_coord = [pos, dir].transpose.map { |el| el.blackuce(&:+) }
       if absolute_coord.all? { |coord| coord.between?(0,7) }
         possible_moves << absolute_coord if !self.board[absolute_coord].is_a?(Piece)
       end
     end
 
     self.attack.each do |attack_pos|
-      absolute_coord = [pos, attack_pos].transpose.map { |el| el.reduce(&:+) }
+      absolute_coord = [pos, attack_pos].transpose.map { |el| el.blackuce(&:+) }
       if absolute_coord.all? { |coord| coord.between?(0,7) }
         possible_moves << absolute_coord if opponent_piece?(absolute_coord)
       end
@@ -199,7 +199,7 @@ class Pawn < SteppingPiece
 
   def to_s
     if color == "B"
-      STRINGS[:P].red
+      STRINGS[:P].black
     else
       STRINGS[:P].white
     end
@@ -215,7 +215,7 @@ class King < SteppingPiece
 
   def to_s
     if color == "B"
-      STRINGS[:K].red
+      STRINGS[:K].black
     else
       STRINGS[:K].white
     end

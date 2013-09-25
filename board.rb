@@ -15,7 +15,6 @@ class Board
       board[1][col] = Pawn.new(self, [1, col], "B")
       board[6][col] = Pawn.new(self, [6, col], "W")
     end
-    board[6][3] = Queen.new(self, [6, 3], "W")
   end
 
   def [](pos)
@@ -46,7 +45,7 @@ class Board
     if valid_move?(color, start_pos, target_pos)
       self[start_pos].move(target_pos)
     else
-      puts "Can't move there!"
+      raise ArgumentError, "Can't move there!"
     end
   end
 
@@ -68,11 +67,8 @@ class Board
     king_pos = []
     self.board.each do |row|
       row.each do |piece|
-        #p "piece: #{piece}"
         next unless piece.is_a?(Piece)
-        #p "piece: #{piece.class}, color: #{piece.color}, possible moves: #{piece.possible_moves}"
         opponent_moves += piece.possible_moves if piece.color != color
-      #  p opponent_moves
         king_pos = piece.pos if piece.is_a?(King) && piece.color == color
       end
     end
@@ -124,8 +120,11 @@ class Board
     puts "  0  1  2  3  4  5  6  7".light_blue
     board.each_with_index do |row, index|
       print "#{index}".light_blue
+      col = 0
       row.each do |piece|
-        print piece.is_a?(Piece) ? piece.to_s : " \u25A2 ".white
+        color = (index.even? && col.odd?) || (index.odd? && col.even?) ? :blue : :cyan
+        print piece.is_a?(Piece) ? piece.to_s.colorize(background: color) : "   ".colorize(background: color)
+        col += 1
       end
       puts ""
     end
