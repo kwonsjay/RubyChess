@@ -1,3 +1,5 @@
+require 'colored'
+require 'colorize'
 class Board
   attr_accessor :board
 
@@ -10,8 +12,8 @@ class Board
     board[0] = Rook.new(self, [0, 0], "B"), Knight.new(self, [0, 1], "B"), Bishop.new(self, [0, 2], "B"), King.new(self, [0, 3], "B"), Queen.new(self, [0, 4], "B"), Bishop.new(self, [0, 5], "B"), Knight.new(self, [0, 6], "B"), Rook.new(self, [0, 7], "B")
     board[7] = Rook.new(self, [7, 0], "W"), Knight.new(self, [7, 1], "W"), Bishop.new(self, [7, 2], "W"), King.new(self, [7, 3], "W"), Queen.new(self, [7, 4], "W"), Bishop.new(self, [7, 5], "W"), Knight.new(self, [7, 6], "W"), Rook.new(self, [7, 7], "W")
     (0..7).each do |col|
-      #board[1][col] = Pawn.new(self, [0, col], "W")
-      board[6][col] = Pawn.new(self, [0, col], "B")
+      board[1][col] = Pawn.new(self, [1, col], "B")
+      board[6][col] = Pawn.new(self, [6, col], "W")
     end
   end
 
@@ -26,26 +28,26 @@ class Board
   end
 
   def deep_dup
-    inject([]) { |dup, el| dup << (el.is_a?(Array) ? el.deep_dup : el) }
+    inject([]) { |dup, el| dup << (el.is_a?(Array) ? el.deep_dup : el.dup) }
   end
 
-  def move(start_pos, target_pos)
-    if valid_move?(start_pos, target_pos)
+  def move(color, start_pos, target_pos)
+    if valid_move?(color, start_pos, target_pos)
       self[start_pos].move(target_pos)
     else
-      raise ArgumentError, "Can't move there!"
+      puts "Can't move there!"
     end
   end
 
-  def valid_move?(start_pos, target_pos)
+  def valid_move?(color, start_pos, target_pos)
     #in bounds on board, #valid direction, #not obstructed
-    pp self[start_pos].possible_moves
-    self[start_pos].possible_moves.include?(target_pos) #
+    self[start_pos].possible_moves.include?(target_pos) &&
     #doesn't leave own king in check
-    # !king_checked?                                       &&
+    # !king_checked?                                      &&
 
     #target_pos doesn't have own piece
-  #  own_piece?(target_pos)
+    !replacing_own_piece?(color, target_pos)            &&
+    moving_own_color?(color, start_pos)
 
 
   end
@@ -66,21 +68,24 @@ class Board
     end
   end
 
-  def own_piece?(target_pos)
-    self[target_pos] && self[target_pos].color == true
+  #not attacking our own piece
+  def replacing_own_piece?(color, target_pos)
+    self[target_pos] && self[target_pos].color == color
   end
 
   #moving your own color
-  def moving_valid_color?
+  def moving_own_color?(color, start_pos)
+    color == self[start_pos].color
   end
 
   def display
     board.each do |row|
       row.each do |piece|
-        print piece.is_a?(Piece) ? piece.render + " " : "- "
+        print piece.is_a?(Piece) ? piece.to_s : " \u25A2 ".white
       end
       puts ""
     end
+    puts "\n------------------------".light_blue
   end
 
 end

@@ -1,4 +1,3 @@
-require "pp"
 require "./board.rb"
 require "./pieces.rb"
 
@@ -13,9 +12,11 @@ end
 
 b = Board.new
 b.display
-b.move([0,1],[2,0])
+b.move("B", [1,0],[3,0])
 b.display
-b.move([0,0],[1,0])
+b.move("B", [1,1],[2,1])
 b.display
-b.move([6,1],[5,1])
+b.move("B", [2,1],[1,1])
+b.display
+b.move("W", [6,1],[4,1])
 b.display

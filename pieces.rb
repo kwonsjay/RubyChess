@@ -1,4 +1,20 @@
+require 'colored'
+require 'colorize'
 class Piece
+  # STRINGS = { K: " \u2654 ",
+  #                   Q: " \u2655 ",
+  #                   R: " \u2656 ",
+  #                   B: " \u2657 ",
+  #                   H: " \u2658 ",
+  #                   P: " \u2659 " }
+  STRINGS = {
+                    K: " \u265A ",
+                    Q: " \u265B ",
+                    R: " \u265C ",
+                    B: " \u265D ",
+                    H: " \u265E ",
+                    P: " \u265F " }
+
   attr_accessor :color, :pos, :board
   def initialize(board, pos, color)
     @board = board
@@ -10,6 +26,10 @@ class Piece
     board[self.pos] = nil
     self.pos = target_pos
     board[target_pos] = self
+  end
+
+  def dup
+    self.class.new(board, pos, color)
   end
 
 end
@@ -44,9 +64,13 @@ class Queen < SlidingPiece
     [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]
   end
 
-  def render
-    # STRINGS[color][self.class.to_s]
-    "Q"
+  def to_s
+    if color == "B"
+      STRINGS[:Q].red
+    else
+      STRINGS[:Q].white
+    end
+
   end
 end
 
@@ -56,8 +80,12 @@ class Bishop < SlidingPiece
     [[1, 1], [-1, -1], [1, -1], [-1, 1]]
   end
 
-  def render
-    "B"
+  def to_s
+    if color == "B"
+      STRINGS[:B].red
+    else
+      STRINGS[:B].white
+    end
   end
 
 end
@@ -68,8 +96,12 @@ class Rook < SlidingPiece
     [[0, 1], [1, 0], [-1, 0], [0, -1]]
   end
 
-  def render
-    "R"
+  def to_s
+    if color == "B"
+      STRINGS[:R].red
+    else
+      STRINGS[:R].white
+    end
   end
 
 end
@@ -95,23 +127,53 @@ class Knight < SteppingPiece
     [[2, 1], [2, -1], [1, 2], [1, -2], [-2, -1], [-2, 1], [-1, -2], [-1, 2]]
   end
 
-  def render
-    "H"
+  def to_s
+    if color == "B"
+      STRINGS[:H].red
+    else
+      STRINGS[:H].white
+    end
+
   end
 
 end
 
 class Pawn < SteppingPiece
   def move_dir
-    [[0,1]] #moving from bottom to top
+    move_dirs = []
+    if color == "B"
+      move_dirs = [[1, 0], [2, 0]]
+    else
+      move_dirs = [[-1, 0], [-2, 0]] #moving from bottom to top
+    end
+
+    first_move? ? move_dirs : [move_dirs.first]
+
   end
 
   def attack
-    [[-1, 1], [1, 1]]
+    if color == "B"
+      [[1, 1], [1, -1]]
+    else
+      [[-1, 1], [-1, -1]]
+    end
   end
 
-  def render
-    "P"
+  def first_move?
+    if color == "B"
+      self.pos.first == 1
+    else
+      self.pos.first == 6
+    end
+  end
+
+  def to_s
+    if color == "B"
+      STRINGS[:P].red
+    else
+      STRINGS[:P].white
+    end
+
   end
 
 end
@@ -121,8 +183,13 @@ class King < SteppingPiece
     [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]
   end
 
-  def render
-    "K"
+  def to_s
+    if color == "B"
+      STRINGS[:K].red
+    else
+      STRINGS[:K].white
+    end
+
   end
 
 end
