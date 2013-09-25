@@ -1,12 +1,8 @@
+require 'debugger'
 require 'colored'
 require 'colorize'
 class Piece
-  # STRINGS = { K: " \u2654 ",
-  #                   Q: " \u2655 ",
-  #                   R: " \u2656 ",
-  #                   B: " \u2657 ",
-  #                   H: " \u2658 ",
-  #                   P: " \u2659 " }
+
   STRINGS = {
                     K: " \u265A ",
                     Q: " \u265B ",
@@ -44,12 +40,15 @@ class SlidingPiece < Piece
     self.move_dir.each do |dir|
       factor = 1
       absolute_coord = [pos, dir].transpose.map { |el| el.reduce(&:+) }
+      next unless absolute_coord.all? { |coord| coord.between?(0,7) }
 
-      until factor > 7 || board[absolute_coord].is_a?(Piece)
+     #debugger
+      until factor > 7 || (board && board[absolute_coord].is_a?(Piece))
         relative_coord = dir.map { |el| el * factor }
         absolute_coord = [pos, relative_coord].transpose.map { |el| el.reduce(&:+) }
         possible_moves << absolute_coord if absolute_coord.all? { |coord| coord.between?(0,7) }
         factor += 1
+        break if absolute_coord.any? { |coord| !coord.between?(0,7) }
       end
     end
 
@@ -61,7 +60,7 @@ end
 class Queen < SlidingPiece
 
   def move_dir
-    [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]
+    [[0, 1], [1, 0], [-1, 0], [0, -1], [-1, -1], [1, -1], [-1, 1], [1, 1]]
   end
 
   def to_s
@@ -139,6 +138,28 @@ class Knight < SteppingPiece
 end
 
 class Pawn < SteppingPiece
+  def possible_moves
+
+    possible_moves = []
+
+    self.move_dir.each do |dir|
+      absolute_coord = [pos, dir].transpose.map { |el| el.reduce(&:+) }
+      if absolute_coord.all? { |coord| coord.between?(0,7) }
+        possible_moves << absolute_coord if !self.board[absolute_coord].is_a?(Piece)
+      end
+    end
+
+    self.attack.each do |attack_pos|
+      absolute_coord = [pos, attack_pos].transpose.map { |el| el.reduce(&:+) }
+      if absolute_coord.all? { |coord| coord.between?(0,7) }
+        possible_moves << absolute_coord if opponent_piece?(absolute_coord)
+      end
+
+    end
+
+    possible_moves
+  end
+
   def move_dir
     move_dirs = []
     if color == "B"
@@ -159,6 +180,10 @@ class Pawn < SteppingPiece
     end
   end
 
+  def opponent_piece?(target_pos)
+    board[target_pos].is_a?(Piece) && board[target_pos].color != self.color
+  end
+
   def first_move?
     if color == "B"
       self.pos.first == 1
@@ -166,6 +191,7 @@ class Pawn < SteppingPiece
       self.pos.first == 6
     end
   end
+
 
   def to_s
     if color == "B"
