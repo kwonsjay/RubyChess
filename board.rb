@@ -11,22 +11,12 @@ class Board
   def set_board
     board[0] = Rook.new(self, [0, 0], "B"), Knight.new(self, [0, 1], "B"), Bishop.new(self, [0, 2], "B"), King.new(self, [0, 3], "B"), Queen.new(self, [0, 4], "B"), Bishop.new(self, [0, 5], "B"), Knight.new(self, [0, 6], "B"), Rook.new(self, [0, 7], "B")
     board[7] = Rook.new(self, [7, 0], "W"), Knight.new(self, [7, 1], "W"), Bishop.new(self, [7, 2], "W"), King.new(self, [7, 3], "W"), Queen.new(self, [7, 4], "W"), Bishop.new(self, [7, 5], "W"), Knight.new(self, [7, 6], "W"), Rook.new(self, [7, 7], "W")
-    # (0..7).each do |col|
-    #   board[1][col] = Pawn.new(self, [1, col], "B")
-    #   board[6][col] = Pawn.new(self, [6, col], "W")
-    # end
-    # board[6][3] = Queen.new(self, [6, 3], "W")
+    (0..7).each do |col|
+      board[1][col] = Pawn.new(self, [1, col], "B")
+      board[6][col] = Pawn.new(self, [6, col], "W")
+    end
+    board[6][3] = Queen.new(self, [6, 3], "W")
   end
-
-  # def set_board
-  #   #pos = [0,3]
-  #   board[0] =  King.new(self, [0, 3], "B"), King.new(self, [0, 3], "B"), King.new(self, [0, 3], "B"), King.new(self, [0, 3], "B"), King.new(self, [0, 3], "B"), King.new(self, [0, 3], "B"), King.new(self, [0, 3], "B"), King.new(self, [0, 3], "B")
-  #   board[7] =  Rook.new(self, [7, 0], "W"), Knight.new(self, [7, 1], "W"), Bishop.new(self, [7, 2], "W"), King.new(self, [7, 3], "W"), Queen.new(self, [7, 4], "W"), Bishop.new(self, [7, 5], "W"), Knight.new(self, [7, 6], "W"), Rook.new(self, [7, 7], "W")
-  #   # (0..7).each do |col|
-  #   #   board[1][col] = Pawn.new(self, [1, col], "B")
-  #   #   board[6][col] = Pawn.new(self, [6, col], "W")
-  #   # end
-  # end
 
   def [](pos)
     row, col = pos
@@ -39,7 +29,17 @@ class Board
   end
 
   def deep_dup
-    inject([]) { |dup, el| dup << (el.is_a?(Array) ? el.deep_dup : el.dup) }
+    dup_board = Board.new
+    copy_board = Array.new(8) { Array.new(8) }
+    board.each do |row|
+      row.each do |piece|
+        next if piece.nil?
+
+        copy_board[piece.pos[0]][piece.pos[1]] = piece.class.new(dup_board, piece.pos, piece.color)
+      end
+    end
+    dup_board.board = copy_board
+    dup_board
   end
 
   def move(color, start_pos, target_pos)
@@ -54,7 +54,7 @@ class Board
     #in bounds on board, #valid direction, #not obstructed
     self[start_pos].possible_moves.include?(target_pos) &&
     #doesn't leave own king in check
-    # !king_checked?                                      &&
+    !move_check?(start_pos, target_pos)                 &&
 
     #target_pos doesn't have own piece
     !replacing_own_piece?(color, target_pos)            &&
@@ -63,7 +63,7 @@ class Board
 
   end
 
-  def check(color)
+  def check?(color)
     opponent_moves = []
     king_pos = []
     self.board.each do |row|
@@ -80,20 +80,34 @@ class Board
     opponent_moves.include?(king_pos)
   end
 
-  def king_checked?(target_pos)
-    copy_board = board.deep_dup
+  def move_check?(start_pos, target_pos)
+    copy_board = self.deep_dup
 
-    copy_board[target_pos] = self
-    copy_board[self.pos] = nil
+    moving_piece = copy_board[start_pos]
+    moving_piece.move(target_pos)
 
-    copy_board.each do |row|
+    copy_board.check?(moving_piece.color)
+  end
+
+  def checkmate?(color)
+    return false unless check?(color)
+    own_pieces = []
+    self.board.each do |row|
       row.each do |piece|
-        next if !piece.is_a? Piece
-        next if piece.color == self.color
+        next unless piece.is_a?(Piece) && piece.color == color
 
-
+        own_pieces << piece
       end
     end
+
+    own_pieces.each do |own_piece|
+      p "own piece: #{own_piece}"
+      own_piece.possible_moves.each do |move|
+        p "start_pos: #{own_piece.pos}, move to #{move}"
+        return false if valid_move?(color, own_piece.pos, move)
+      end
+    end
+    true
   end
 
   #not attacking our own piece
