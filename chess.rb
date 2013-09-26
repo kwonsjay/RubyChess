@@ -2,11 +2,12 @@ require "./board.rb"
 require "./pieces.rb"
 
 class Game
-  attr_accessor :board, :current_turn, :white
+  attr_accessor :board, :current_turn, :previous_turn, :white
 
   def initialize
     @board = Board.new
     @white = true
+    @previous_turn = "B"
     @current_turn = "W"
   end
 
@@ -17,9 +18,11 @@ class Game
     until game_over
       start_loc = make_turn
       end_turn(start_loc)
-      game_over = board.checkmate?(current_turn)
+      self.previous_turn = current_turn
       next_turn
+      game_over = board.checkmate?(current_turn)
     end
+    puts "Checkmate! Winner is #{previous_turn}!"
   end
 
   def print_intro
