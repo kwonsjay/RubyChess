@@ -62,10 +62,3 @@ end
 g = Game.new
 g.play
 
-# b.move("W", [5,0],[3,1])
-# b.display
-# p "Checkmate? #{b.checkmate?("B")}"
-
-
-
-
